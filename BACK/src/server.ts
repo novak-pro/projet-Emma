@@ -1,6 +1,5 @@
-import path from "node:path";
 import { mkdirSync } from "node:fs";
-import Fastify from "fastify";
+import Fastify, { type FastifyError } from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import multipart from "@fastify/multipart";
@@ -12,14 +11,19 @@ import { adminRoutes } from "./routes/admin";
 import { analyticsRoutes } from "./routes/analytics";
 import { formConfigRoutes } from "./routes/formConfig";
 
-const UPLOAD_DIR = path.resolve(process.cwd(), "uploads");
+const UPLOAD_DIR = env.uploadDir;
 mkdirSync(UPLOAD_DIR, { recursive: true });
 
 async function main() {
   const app = Fastify({ logger: { level: "info" }, bodyLimit: 12 * 1024 * 1024 });
 
   await app.register(cors, {
-    origin: [env.frontendUrl, "http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: [
+      env.frontendUrl,
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      /\.vercel\.app$/,
+    ],
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   });
   await app.register(jwt, { secret: env.jwtSecret });
@@ -36,7 +40,7 @@ async function main() {
   await app.register(analyticsRoutes);
   await app.register(formConfigRoutes);
 
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error: FastifyError, _request, reply) => {
     app.log.error(error);
     if (error.code === "LIMIT_FILE_SIZE") {
       return reply.code(413).send({ message: "Photo trop volumineuse (10 Mo maximum)" });
@@ -46,13 +50,8 @@ async function main() {
     });
   });
 
-  try {
-    await app.listen({ port: env.port, host: "127.0.0.1" });
-  } catch (err) {
-    app.log.error(err);
-    await app.listen({ port: env.port, host: "0.0.0.0" });
-  }
-  app.log.info(`API ProjetEmma disponible sur http://localhost:${env.port}`);
+  await app.listen({ port: env.port, host: env.host });
+  app.log.info(`API ProjetEmma disponible sur http://${env.host}:${env.port}`);
 }
 
 main().catch((error) => {

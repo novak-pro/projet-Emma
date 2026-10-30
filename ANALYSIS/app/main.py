@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,9 +8,16 @@ from .db import connect
 
 app = FastAPI(title="ProjetEmma Analysis", version="1.0.0")
 
+_frontend_url = os.getenv("FRONTEND_URL", "").strip()
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        *([_frontend_url] if _frontend_url else []),
+    ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

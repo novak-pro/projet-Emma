@@ -7,8 +7,9 @@ import { DamageType } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { reverseGeocode, searchPlaces } from "../lib/geocode";
+import { env } from "../config/env";
 
-const UPLOAD_DIR = path.resolve(process.cwd(), "uploads");
+const UPLOAD_DIR = env.uploadDir;
 mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const reportSchema = z.object({

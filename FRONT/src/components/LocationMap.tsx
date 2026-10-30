@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Circle, Popup, useMap, useMapEvents } from "react-leaflet";
-import type { LatLngExpression } from "react-leaflet";
+import type { LatLngExpression } from "leaflet";
 import L from "leaflet";
 import { Layers, MapPin } from "lucide-react";
 
