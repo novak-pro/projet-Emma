@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+.DS_Store
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+BACK/uploads/*
+!BACK/uploads/.gitkeep
+FRONT/dev-dist/

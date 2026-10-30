@@ -1,0 +1,31 @@
+﻿services:
+  db:
+    image: postgres:15-alpine
+    container_name: projetemma-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: projetemma
+      POSTGRES_PASSWORD: projetemma
+      POSTGRES_DB: projetemma
+    ports:
+      - "5433:5432"
+    volumes:
+      - projetemma_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U projetemma -d projetemma"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:latest
+    container_name: projetemma-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  projetemma_pgdata:

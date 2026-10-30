@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DamageType {
+  NID_DE_POULE
+  FISSURE
+  AFFAISSEMENT
+  ORNIERE
+  EROSION
+  AUTRE
+}
+
+enum SeverityClass {
+  LEGERE
+  MODEREE
+  GRAVE
+  CRITIQUE
+}
+
+enum ReportStatus {
+  NOUVEAU
+  CONFIRME
+  EN_REPARATION
+  REPARE
+  REJETE
+}
+
+enum FormFieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  SELECT
+  FILE
+  CHECKBOX
+  HIDDEN
+}
+
+model FormField {
+  id          String        @id @default(cuid())
+  key         String        @unique
+  label       String
+  type        FormFieldType
+  placeholder String?
+  helpText    String?
+  required    Boolean       @default(false)
+  active      Boolean       @default(true)
+  order       Int           @default(0)
+  options     Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([active, order])
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  reports      Report[] @relation("AdminReviewer")
+}
+
+model Report {
+  id            String        @id @default(cuid())
+  latitude      Float
+  longitude     Float
+  region        String?
+  city          String?
+  roadName      String?
+  damageType    DamageType
+  sizeEstimate  Float?
+  description   String?
+  photos        Photo[]
+  severityScore Float?
+  severityClass SeverityClass?
+  status        ReportStatus  @default(NOUVEAU)
+  reporterName  String?
+  reporterPhone String?
+  reviewedById  String?
+  reviewedBy    Admin?        @relation("AdminReviewer", fields: [reviewedById], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([latitude, longitude])
+  @@index([region, createdAt])
+  @@index([severityClass])
+  @@index([createdAt])
+}
+
+model Photo {
+  id       String @id @default(cuid())
+  url      String
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+}
+
+model AnalysisRun {
+  id        String   @id @default(cuid())
+  type      String
+  params    Json?
+  results   Json
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+}
+
+model FormConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  config    Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
